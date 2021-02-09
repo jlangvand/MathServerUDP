@@ -17,8 +17,8 @@ import socket, select, sys
 
 #  TODO: Structure
 
-UDP_ADDR = '127.0.0.1'
-UDP_PORT = 2021 #  TODO: Override port with argument
+ADDR = '127.0.0.1'
+PORT = 2222 #  TODO: Override port with argument
 MAX_LENGTH = 128
 
 BUFFER_SIZE = 1024
@@ -28,10 +28,11 @@ greeting = "RemoteCalc UDP client v1.0-ALPHA\n"
 print(greeting)
 
 def send(msg):
-    s.sendto(msg.encode("utf-8"), (UDP_ADDR, UDP_PORT))
+    s.connect((ADDR, PORT))
+    s.send(msg.encode("utf-8"))
+    s.close()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind(("localhost", 2020))
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.settimeout(2)
 
 response = b''
@@ -42,7 +43,7 @@ while msg != "exit":
     send(msg)
 
     try:
-        data, addr = s.recvfrom(128)
+        data, addr = s.recvfrom(BUFFER_SIZE)
         print("ans: {}".format(data.decode("utf-8")))
 
     except socket.timeout:

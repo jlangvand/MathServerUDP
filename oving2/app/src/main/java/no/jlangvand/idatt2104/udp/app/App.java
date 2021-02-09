@@ -9,41 +9,110 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 
-public class App {
+public class App implements Runnable {
     private DatagramPacket packet;
     private static final PrintStream out = System.out;
     private static final int packetLength = 128;
     private byte[] buf;
     private String request;
     private String response;
+    private AsynchronousServerSocketChannel channel;
+    static App app;
 
     public static void main(String[] args) {
         out.println("Starting server");
-        new App().udpListener();
-    }
-    
-    /*
-     * Open a UDP socket and wait for incoming packets.
-     *
-     * Upon receiving a packet, parse the contents and return the result.    
-     */
-    public void udpListener() {
-        try (DatagramSocket socket = new DatagramSocket(2021)) {
-            for (;;) {
-                buf = new byte[packetLength];
-                packet = new DatagramPacket(buf, buf.length);
-                socket.receive(packet);
-                request = new String(buf, 0, buf.length);
-                response = parse(request);
-                packet.setData(response.getBytes());
-                socket.send(packet);
+        app = new App();
+        app.run();
+        try {
+            synchronized (App.app) {
+                App.app.wait();
             }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (InterruptedException e) {
+            System.exit(0);
+        }
+    }
+
+    public void run() {
+        try {
+			channel = AsynchronousServerSocketChannel.open();
+            channel.bind(new InetSocketAddress("localhost", 2222));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+            return;
+		}
+        
+        CompletionHandler<AsynchronousSocketChannel, Object> completionHandler;
+        completionHandler = new CompletionHandler<>() {
+            @Override
+            public void completed(AsynchronousSocketChannel result, Object attachment) {
+                if (channel.isOpen())
+                    channel.accept(null, this);
+
+                AsynchronousSocketChannel client = result;
+
+                if ((client != null) && client.isOpen()) {
+                    ReadWriteHandler handler = new ReadWriteHandler(client);
+                    ByteBuffer buf = ByteBuffer.allocate(packetLength);
+                    Map<String, Object> readInfo = new HashMap<>();
+                    readInfo.put("action", "read");
+                    readInfo.put("buffer", buf);
+                    client.read(buf, readInfo, handler);
+                }
+
+            }
+
+            @Override
+            public void failed(Throwable e, Object attachment) {
+                e.printStackTrace();
+            }
+        };
+        channel.accept(null, completionHandler);
+
+    }
+
+    class ReadWriteHandler implements CompletionHandler<Integer, Map<String, Object>> {
+        private AsynchronousSocketChannel client;
+
+        public ReadWriteHandler(AsynchronousSocketChannel client) {
+            this.client = client;
+        }
+
+        @Override
+        public void completed(Integer res, Map<String, Object> attachment) {
+            if (res == -1)
+                return;
+
+            String action = (String) attachment.get("action");
+
+            if (action.equals("read")) {
+                attachment.put("action", "write");
+                ByteBuffer buf = (ByteBuffer) attachment.get("buffer");
+                String str = Charset.forName("UTF-8").decode(buf).toString();
+                out.println("Decoded: " + str);
+                client.write(buf, attachment, this);
+                buf.clear();
+            } else if (action.equals("write")) {
+                ByteBuffer buf = ByteBuffer.allocate(packetLength);
+                attachment.put("action", "read");
+                attachment.put("buffer", buf);
+                client.read(buf, attachment, this);
+            }
+        }
+
+        @Override
+        public void failed(Throwable e, Map<String, Object> attachment) {
             e.printStackTrace();
         }
     }
