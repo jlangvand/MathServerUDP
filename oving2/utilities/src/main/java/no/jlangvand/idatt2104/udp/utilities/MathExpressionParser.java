@@ -34,10 +34,6 @@ public class MathExpressionParser {
      // Functions
     static DoubleUnaryOperator root = a -> Math.sqrt(a);
 
-    public MathExpressionParser() {
-        this.ans = "";
-    }
-
     // TODO: Something broke this..
     private static String evaluateFunctions(String arg) {
         String regex = "sqrt\\(\\d+\\.?\\d*\\)";
