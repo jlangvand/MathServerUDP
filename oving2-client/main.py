@@ -28,7 +28,7 @@ greeting = "RemoteCalc UDP client v1.0-ALPHA\n"
 print(greeting)
 
 def send(msg):
-    s.sendto(msg.encode("utf-8") + b'\n', (UDP_ADDR, UDP_PORT))
+    s.sendto(msg.encode("utf-8"), (UDP_ADDR, UDP_PORT))
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind(("localhost", 2020))
@@ -50,10 +50,5 @@ while msg != "exit":
         
     msg = input("> ")
 
-#  Tell the server we're done
-send("bye")
-
-#  Clean up
 s.close()
-
 sys.exit(0)
