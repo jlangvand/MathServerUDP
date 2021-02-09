@@ -3,24 +3,14 @@
  */
 package no.jlangvand.idatt2104.udp.app;
 
-import no.jlangvand.idatt2104.udp.list.LinkedList;
-import no.jlangvand.idatt2104.udp.utilities.MathExpressionParser;
-
-import static no.jlangvand.idatt2104.udp.utilities.StringUtils.join;
-import static no.jlangvand.idatt2104.udp.utilities.StringUtils.split;
 import static no.jlangvand.idatt2104.udp.utilities.MathExpressionParser.parse;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
-import static no.jlangvand.idatt2104.udp.app.MessageUtils.getMessage;
-
-import org.apache.commons.text.WordUtils;
 
 public class App {
     private DatagramPacket packet;
@@ -46,9 +36,8 @@ public class App {
                 buf = new byte[packetLength];
                 packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
-                out.println(new String(buf, 0, packetLength));
                 request = new String(buf, 0, buf.length);
-                response = MathExpressionParser.parse(request);
+                response = parse(request);
                 packet.setData(response.getBytes());
                 socket.send(packet);
             }
