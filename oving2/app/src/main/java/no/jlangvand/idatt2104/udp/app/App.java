@@ -23,18 +23,18 @@ import static no.jlangvand.idatt2104.udp.app.MessageUtils.getMessage;
 import org.apache.commons.text.WordUtils;
 
 public class App {
+    private DatagramPacket packet;
+    private static final PrintStream out = System.out;
+    private static final int packetLength = 128;
+    private byte[] buf;
+    private String request;
+    private String response;
+
     public static void main(String[] args) {
         out.println("Starting server");
         new App().udpListener();
     }
-
-    DatagramPacket packet;
-    private static final PrintStream out = System.out;
-    int packetLength = 128;
-    byte[] buf;
-    String request;
-    String response;
-
+    
     /*
      * Open a UDP socket and wait for incoming packets.
      *
