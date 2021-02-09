@@ -24,9 +24,6 @@ import java.util.regex.Pattern;
 
 
 public class MathExpressionParser {
-    // Save previous result so we can recall it later
-    private String ans;
-    
      // Operators
     static DoubleBinaryOperator sum = (a, b) -> a + b;
     static DoubleBinaryOperator div = (a, b) -> a / b;
