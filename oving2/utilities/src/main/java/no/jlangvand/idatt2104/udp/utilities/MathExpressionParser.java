@@ -49,7 +49,6 @@ public class MathExpressionParser {
         Matcher matcher = pattern.matcher(arg);
         while (matcher.find()) {
             String grp = matcher.group();
-            System.out.println("Matched group: " + grp);
             String num = (String) grp.subSequence(5, grp.length() - 1);
             double res = Math.sqrt(Double.parseDouble(num));
             arg = arg.replace(grp, Double.toString(res));
@@ -62,20 +61,17 @@ public class MathExpressionParser {
     //private static String evaluateFun
 
     private static String evaluateGroup(String delimiter, DoubleBinaryOperator op, String arg) {
-        System.out.println("In evaluateGroup()");
         String regex = "\\d+\\.?\\d*+" + delimiter + "\\d+\\.?\\d*";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(arg);
         while (matcher.find()) {
             String grp = matcher.group();
-            System.out.println("Matched group: " + grp);
             double a = Double.parseDouble(grp.split(delimiter)[0]);
             double b = Double.parseDouble(grp.split(delimiter)[1]);
             double res = op.applyAsDouble(a, b);
             arg = arg.replace(grp, Double.toString(res));
             matcher = pattern.matcher(arg);
         }
-        System.out.println("Out of evaluateGroup()");
         return arg;
     }
 
@@ -84,7 +80,6 @@ public class MathExpressionParser {
         Matcher matcher = pattern.matcher(arg);
         while (matcher.find()) {
             String grp = matcher.group();
-            System.out.println("Matched group: " + grp);
             arg = arg.replace(grp, grp.substring(1, grp.length() - 1));
             matcher = pattern.matcher(arg);
         }
@@ -115,7 +110,6 @@ public class MathExpressionParser {
         expression = expression.replace("pi", Double.toString(Math.PI));
         expression = expression.replaceAll("e", Double.toString(Math.E));
         expression = expression.replaceAll("ans", ans);
-        System.out.println("After replacement: " + expression);
 
         // Evaluate groups
         String previous;
